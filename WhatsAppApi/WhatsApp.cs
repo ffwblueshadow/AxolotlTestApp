@@ -661,6 +661,13 @@ namespace WhatsAppApi
             this.SendMessageBroadcast(to, tmpMessage);
             return tmpMessage.identifier_key.ToString();
         }
+        
+        public string SendMessageBroadcastLocation(string[] to, string name, double lat, double lon)
+        {
+            var tmpMessage = new FMessage(string.Empty, true) { location_details = name, media_wa_type = FMessage.Type.Location, latitude = lat, longitude = lon };
+            this.SendMessageBroadcast(to, tmpMessage);
+            return tmpMessage.identifier_key.ToString();
+        }
 
         //BRIAN MODIFIED FOR RETURN ID
         public string SendMessageBroadcastImage(string[] recipients, byte[] ImageData, ImageType imgtype)
@@ -724,7 +731,7 @@ namespace WhatsAppApi
 
 		public void SendMessageBroadcast(string[] to, FMessage message)
 		{
-			if (to != null && to.Length > 0 && message != null && !string.IsNullOrEmpty(message.data))
+			if (to != null && to.Length > 0 && message != null )
 			{
 				ProtocolTreeNode child;
 				if (message.media_wa_type == FMessage.Type.Undefined)
@@ -734,7 +741,28 @@ namespace WhatsAppApi
 				}
 				else
 				{
-					throw new NotImplementedException();
+					if (FMessage.Type.Location == message.media_wa_type)
+                {
+                    List<KeyValue> list = new List<KeyValue>(new KeyValue[] { new KeyValue("xmlns", "urn:xmpp:whatsapp:mms"), new KeyValue("type", FMessage.GetMessage_WA_Type_StrValue(message.media_wa_type)) });
+
+                    //  new ProtocolTreeNode("media", new[] { new KeyValue("type", "location"), new KeyValue("encoding", "raw"), new KeyValue("latitude", message.latitude.ToString(CultureInfo.InvariantCulture)), new KeyValue("longitude", message.longitude.ToString(CultureInfo.InvariantCulture)), new KeyValue("name", "location"), new KeyValue("url", "location")});
+
+                    list.AddRange(new KeyValue[] { new KeyValue("latitude", message.latitude.ToString(CultureInfo.InvariantCulture)), new KeyValue("longitude", message.longitude.ToString(CultureInfo.InvariantCulture)) });
+                    if (message.location_details != null)
+                    {
+                        list.Add(new KeyValue("name", message.location_details));
+                    }
+                    if (message.location_url != null)
+                    {
+                        list.Add(new KeyValue("url", message.location_url));
+                    }
+                    list.Add(new KeyValue("encoding", "raw"));
+                   
+                    child = new ProtocolTreeNode("media", list.ToArray(), null, null);               
+                    
+                }else{
+                    throw new NotImplementedException();
+                }
 				}
 
 				List<ProtocolTreeNode> toNodes = new List<ProtocolTreeNode>();
