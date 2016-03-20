@@ -683,8 +683,10 @@ namespace WhatsAppApi
 
         public void SendAvailableForChat(string nickName = null, bool isHidden = false)
         {
+            if(isHidden==false){
             var node = new ProtocolTreeNode("presence", new[] { new KeyValue("name", (!String.IsNullOrEmpty(nickName) ? nickName : this.name)) });
             this.SendNode(node);
+            }
         }
 
         protected void SendClearDirty(IEnumerable<string> categoryNames)
